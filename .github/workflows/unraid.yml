@@ -1,0 +1,95 @@
+name: Unraid image
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish after tests pass
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unraid-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  image:
+    # Opt in to automatic publication through a repository variable after initial server tests.
+    if: github.event_name != 'schedule' || vars.AUTO_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Validate packaging
+        run: |
+          python3 unraid/validate.py
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          bash -n unraid/entrypoint.sh
+      - name: Set image metadata
+        id: image
+        shell: bash
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/opengym-unraid" >> "$GITHUB_OUTPUT"
+          echo "version=sha-${GITHUB_SHA::12}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+      - name: Check for changed upstream images
+        id: upstream
+        env:
+          PUBLISHED_IMAGE: ${{ steps.image.outputs.name }}:latest
+        run: python3 scripts/upstream.py --published-image "$PUBLISHED_IMAGE"
+      - name: Build current upstream images
+        if: github.event_name != 'schedule' || steps.upstream.outputs.changed == 'true'
+        env:
+          API_IMAGE: ${{ steps.upstream.outputs.api_image }}
+          WEB_IMAGE: ${{ steps.upstream.outputs.web_image }}
+          IMAGE_VERSION: ${{ steps.image.outputs.version }}
+        run: |
+          docker build --pull -f unraid/Dockerfile -t opengym-unraid:test \
+            --build-arg OPENGYM_API_IMAGE="$API_IMAGE" \
+            --build-arg OPENGYM_WEB_IMAGE="$WEB_IMAGE" \
+            --build-arg VERSION="$IMAGE_VERSION" \
+            --build-arg VCS_REF="$GITHUB_SHA" \
+            --build-arg SOURCE_URL="https://github.com/$GITHUB_REPOSITORY" .
+      - name: Test the image
+        if: github.event_name != 'schedule' || steps.upstream.outputs.changed == 'true'
+        run: python3 unraid/smoke-test.py opengym-unraid:test
+      - name: Sign in to GHCR
+        if: >-
+          github.ref == 'refs/heads/main' &&
+          ((github.event_name == 'workflow_dispatch' && inputs.publish) ||
+           (vars.AUTO_PUBLISH == 'true' &&
+            (github.event_name == 'push' ||
+             (github.event_name == 'schedule' && steps.upstream.outputs.changed == 'true'))))
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish the exact tested image
+        if: >-
+          github.ref == 'refs/heads/main' &&
+          ((github.event_name == 'workflow_dispatch' && inputs.publish) ||
+           (vars.AUTO_PUBLISH == 'true' &&
+            (github.event_name == 'push' ||
+             (github.event_name == 'schedule' && steps.upstream.outputs.changed == 'true'))))
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+          VERSION: ${{ steps.image.outputs.version }}
+        run: |
+          docker tag opengym-unraid:test "$IMAGE:$VERSION"
+          docker push "$IMAGE:$VERSION"
+          docker tag opengym-unraid:test "$IMAGE:latest"
+          docker push "$IMAGE:latest"

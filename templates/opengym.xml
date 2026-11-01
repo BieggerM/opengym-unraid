@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Container version="2">
+  <Name>openGym</Name>
+  <Repository>ghcr.io/bieggerm/opengym-unraid:latest</Repository>
+  <Registry>https://github.com/BieggerM/opengym-unraid/pkgs/container/opengym-unraid</Registry>
+  <Network>bridge</Network>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/BieggerM/opengym-unraid/issues</Support>
+  <Project>https://github.com/DuarteSantos8/openGym</Project>
+  <ReadMe>https://raw.githubusercontent.com/BieggerM/opengym-unraid/main/README.md</ReadMe>
+  <Overview>Self-hosted workout and body-weight tracker with routines, exercise animations, progress charts, passkeys and password login. Packages the openGym web UI and API together for Unraid; no separate database or Docker Compose required. Set Application URL to the exact browser address before creating a profile. HTTPS on a domain is required for passkeys on other devices; password login works over a trusted LAN. The first profile becomes the administrator. Back up the appdata folder.</Overview>
+  <Category>Home: Productivity:</Category>
+  <ExtraSearchTerms>fitness gym workout exercise health weight training</ExtraSearchTerms>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <Icon>https://raw.githubusercontent.com/DuarteSantos8/openGym/main/frontend/public/icon-512.png</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/BieggerM/opengym-unraid/main/templates/opengym.xml</TemplateURL>
+  <License>AGPL-3.0-or-later; exercise media separately licensed (see NOTICE.md)</License>
+  <Beta>true</Beta>
+  <Config Name="Web UI port" Target="8080" Default="8080" Mode="tcp" Description="HTTP port. Forward your HTTPS reverse proxy to this port." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Appdata" Target="/data" Default="/mnt/user/appdata/opengym" Mode="rw" Description="All profiles, workout data, uploads, session secret and push keys. Back up this folder." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/opengym</Config>
+  <Config Name="Application URL" Target="ORIGIN" Default="" Description="Required: exact address used in the browser, e.g. http://192.168.1.10:8080 or https://gym.example.com. Include the port when using one; no trailing slash. Must match your chosen Web UI port." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="Passkey hostname" Target="RP_ID" Default="" Description="Hostname only from Application URL, e.g. gym.example.com (no scheme, port or path). A LAN IP can be used with password login, but remote passkeys require HTTPS on a domain." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="Password login" Target="PASSWORD_LOGIN" Default="1" Description="1 enables username/password sign-in, including LAN HTTP access. 0 uses passkeys only." Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
+  <Config Name="First profile is administrator" Target="FIRST_USER_ADMIN" Default="1" Description="1 makes the first profile on an empty instance the administrator. Create your profile before sharing access." Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
+  <Config Name="Invite-only registration" Target="INVITE_ONLY" Default="0" Description="Set to 1 after creating the first administrator to require invite codes for new profiles." Type="Variable" Display="advanced" Required="false" Mask="false">0</Config>
+  <Config Name="Allow guest mode" Target="ALLOW_GUEST" Default="1" Description="1 allows browser-only guest data; 0 requires a server profile. Guest data is not part of appdata backups." Type="Variable" Display="advanced" Required="false" Mask="false">1</Config>
+  <Config Name="Session duration" Target="SESSION_DAYS" Default="90" Description="Days before a newly issued sign-in expires." Type="Variable" Display="advanced" Required="false" Mask="false">90</Config>
+  <Config Name="Language" Target="DEFAULT_LANG" Default="" Description="Optional initial language, such as en, de or pt-BR." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="URL prefix" Target="BASE_PATH" Default="" Description="Only for a reverse proxy that passes a prefix through: /gym, without a trailing slash. Leave empty for normal hosting or a proxy that strips its prefix." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+</Container>

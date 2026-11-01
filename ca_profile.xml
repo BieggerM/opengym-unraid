@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommunityApplications>
+  <Profile>Unraid packaging of openGym maintained by BieggerM. Includes a single-container image and Docker Manager template for the upstream openGym workout tracker. Report packaging and Unraid installation issues in this repository.</Profile>
+  <Icon>https://raw.githubusercontent.com/DuarteSantos8/openGym/main/frontend/public/icon-512.png</Icon>
+  <WebPage>https://github.com/BieggerM/opengym-unraid</WebPage>
+  <Forum>https://github.com/BieggerM/opengym-unraid/issues</Forum>
+</CommunityApplications>
