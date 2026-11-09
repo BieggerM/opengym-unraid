@@ -10,7 +10,7 @@
   <Project>https://github.com/DuarteSantos8/openGym</Project>
   <ReadMe>https://raw.githubusercontent.com/BieggerM/opengym-unraid/main/README.md</ReadMe>
   <Overview>Self-hosted workout and body-weight tracker with routines, exercise animations, progress charts, passkeys and password login. Packages the openGym web UI and API together for Unraid; no separate database or Docker Compose required. Set Application URL to the exact browser address before creating a profile. HTTPS on a domain is required for passkeys on other devices; password login works over a trusted LAN. The first profile becomes the administrator. Back up the appdata folder.</Overview>
-  <Category>Home: Productivity:</Category>
+  <Category>Productivity:</Category>
   <ExtraSearchTerms>fitness gym workout exercise health weight training</ExtraSearchTerms>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
   <Icon>https://raw.githubusercontent.com/DuarteSantos8/openGym/main/frontend/public/icon-512.png</Icon>
